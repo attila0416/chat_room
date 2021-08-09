@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, width=device-width">
+
+        <link href="favicon.ico" rel="icon">
+        <link href="styles.css" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+        <title>Chat Room: Register</title>
+
+        <!--SCRIPT-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+        <script>
+
+            $(document).ready(function(){
+                // Theme changing
+                checkTheme();
+
+                $("#theme").click(function(){
+                    const whole = document.querySelector('.whole_section');
+                    whole.classList.toggle('dark');
+
+                    let cvalue = "light";
+
+                    if (whole.classList.contains("dark")) {
+                        cvalue = "dark";
+                    }
+                    setDeafultCookie("theme", cvalue, 1);
+                });
+
+                function setDeafultCookie(cname, cvalue, expires) {
+                    setCookie(cname, cvalue, expires, "/");
+                }
+
+                function setCookie(cname, cvalue, expires, path) {
+                    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=" + path;
+                }
+
+                function checkTheme() {
+                    var myCookie = getCookie("theme");
+
+                    if (myCookie == "dark") {
+                        const whole = document.querySelector('.whole_section');
+                        whole.classList.toggle('dark');
+                    }
+                }
+
+                function getCookie(cname) {
+                    let name = cname + "=";
+                    let ca = document.cookie.split(';');
+                    for(let i = 0; i < ca.length; i++) {
+                        let c = ca[i];
+                        while (c.charAt(0) == ' ') {
+                            c = c.substring(1);
+                        }
+                        if (c.indexOf(name) == 0) {
+                            return c.substring(name.length, c.length);
+                        }
+                    }
+                    return "";
+                }
+
+
+                $("#register_button").click(function(){
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/register",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            display_name: $("#display_name").val(),
+                            username: $("#username").val(),
+                            password: $("#password").val(),
+                            confirmed_password: $("#confirmed_password").val()
+                            }),
+                        dataType: "json",
+                        success: function(response) {
+
+                            if (response["redirect"]) {
+                                document.location.href = response["redirect"];
+                            }
+                            else if (response["server_message"]) {
+                                console.log(response["server_message"]);
+                                div = document.getElementById("alert_box");
+                                div.innerHTML = "";
+                                div.style.opacity = "1";
+                                div.style.display = "";
+                                div.innerHTML += '<div class="alert warning"><strong>Warning!</strong> ' + response["server_message"] + '</div>';
+                            }
+
+                        },
+                        error: function(response) {
+                            console.log(response);
+                        }
+                    });
+                    $("#display_name").val("");
+                    $("#username").val("");
+                    $("#password").val("");
+                    $("#confirmed_password").val("");
+                    $("#display_name").focus();
+                });
+
+
+                $("#alert_box").click(function(){
+                    div = document.getElementById("alert_box");
+
+                    div.style.opacity = "0";
+                    setTimeout(function(){
+                        div.style.display = "none";
+
+                    }, 600);
+                });
+
+
+            });
+
+        </script>
+
+
+    </head>
+
+    <body>
+
+
+
+        <section class="whole_section">
+            <!--HEADER-->
+            <div class="header">
+                <div class="inner_header">
+                    <div class="logo_container">
+                        <text>Chat<span>Room</span></text>
+                    </div>
+
+                    <ul class="navigation">
+                        <a href="/login"><li>Login</li></a>
+                        <li id="theme"></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!--MAIN-->
+            <section id="main_section">
+                <div id="shape_1"></div>
+                <div id="box">
+
+                    <div id="alert_box">
+                    </div>
+
+                    <div class="container">
+                        <h2>Register</h2>
+
+                        <br>
+                        <input autofocus type="text" placeholder="Display Name" name="display_name" id="display_name" required>
+                        <input type="text" placeholder="Username" name="username" id="username" required>
+                        <input type="password" placeholder="Password" name="password" id="password" required>
+                        <input type="password" placeholder="Confirm Password" name="confirmed_password" id="confirmed_password" required>
+                        <button id="register_button">Register</button>
+
+                    </div>
+
+
+                </div>
+                <div id="shape_2"></div>
+            </section>
+
+        </section>
+
+    </body>
+
+</html>

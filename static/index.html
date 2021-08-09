@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, width=device-width">
+
+        <link href="favicon.ico" rel="icon">
+        <link href="styles_home.css" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+        <title>Chat Room: Main</title>
+
+        <!--SCRIPT-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+        <script>
+
+            $(document).ready(function(){
+                let is_online = true;
+
+                connectUser();
+                checkTheme();
+                loadNewMessages();
+
+                function connectUser() {
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/user_status",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            user_status: "online"
+                            }),
+                        dataType: "json",
+                        success: function(response) {
+                            // console.log(response["server_message"]);
+                        },
+                        error: function(response) {
+                            console.log(response["server_message"]);
+                        }
+                    });
+                };
+
+                // Theme changing
+                $("#theme").click(function(){
+                    const whole = document.querySelector('.whole_section');
+                    whole.classList.toggle('dark');
+
+                    let cvalue = "light";
+
+                    if (whole.classList.contains("dark")) {
+                        cvalue = "dark";
+                    }
+                    setDeafultCookie("theme", cvalue, 1);
+                });
+
+                function setDeafultCookie(cname, cvalue, expires) {
+                    setCookie(cname, cvalue, expires, "/");
+                }
+
+                function setCookie(cname, cvalue, expires, path) {
+                    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=" + path;
+                }
+
+                function checkTheme() {
+                    var myCookie = getCookie("theme");
+
+                    if (myCookie == "dark") {
+                        const whole = document.querySelector('.whole_section');
+                        whole.classList.toggle('dark');
+                    }
+                }
+
+                function getCookie(cname) {
+                    let name = cname + "=";
+                    let ca = document.cookie.split(';');
+                    for (let i = 0; i < ca.length; i++) {
+                        let c = ca[i];
+                        while (c.charAt(0) == ' ') {
+                            c = c.substring(1);
+                        }
+                        if (c.indexOf(name) == 0) {
+                            return c.substring(name.length, c.length);
+                        }
+                    }
+                    return "";
+                }
+
+
+
+                setInterval(function() {
+                    if (is_online) {
+                        loadNewMessages();
+                    }
+                }, 2000);
+
+                function loadNewMessages() {
+                    $.ajax({
+                        type: "GET",
+                        url: "/api/get_updates",
+                        dataType: "json",
+                        success: function(response) {
+                            htmlContent = "";
+                            if (response["redirect"]) {
+                                document.location.href = response["redirect"];
+                            }
+
+                            $("#text_box").empty();
+                            for (let i = 0; i < response["messages"].length; i++) {
+                                if (response["messages"][i]["display_name"] == "server") {
+                                    $("#text_box").append("<br><div id='status_messages'>" + response["messages"][i]["message"] + "</div>");
+                                } else {
+                                    if (response["messages"][i]["display_name"] == response["current_user"]) {
+                                        $("#text_box").append("<br><div id='right'>" + response["messages"][i]["message"] + "</div>");
+                                    } else {
+                                        $("#text_box").append("<br><div id='left'><p><b>" + response["messages"][i]["display_name"]  + "</b></p>" + response["messages"][i]["message"] + "</div>");
+                                    }
+                                }
+                            }
+
+                        },
+                        error: function(response) {
+                            console.log("Fail to get messages.");
+                            console.log(response);
+                        }
+                    });
+                }
+
+                $("#send_button").click(function(){
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/update_messages",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            message: $("#message").val()
+                            }),
+                        dataType: "json",
+                        success: function(response) {
+                            // console.log(response["server_message"]);
+                        },
+                        error: function(response) {
+                            console.log(response["server_message"]);
+                        }
+                    });
+                    $("#message").val("");
+                    $("#message").focus();
+                });
+
+
+                let input = document.getElementById("message");
+                // Execute a function when the user releases a key on the keyboard
+                input.addEventListener("keyup", function(event) {
+                  // Number 13 is the "Enter" key on the keyboard
+                  if (event.keyCode === 13) {
+                    // Cancel the default action, if needed
+                    event.preventDefault();
+                    document.getElementById("send_button").click();
+                  }
+                });
+
+
+                window.addEventListener('beforeunload', function () {
+                    is_online = false;
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/user_status",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            user_status: "offline"
+                            }),
+                        dataType: "json",
+                        success: function(response) {
+                            // console.log(response["server_message"]);
+                        },
+                        error: function(response) {
+                            console.log(response["server_message"]);
+                        }
+                    });
+                });
+
+            });
+
+        </script>
+
+
+    </head>
+
+    <body>
+
+
+
+        <section class="whole_section">
+            <!--HEADER-->
+            <div class="header">
+                <div class="inner_header">
+                    <div class="logo_container">
+                        <text>Chat<span>Room</span></text>
+                    </div>
+
+                    <ul class="navigation">
+                        <a href="/delete_account"><li>Delete Account</li></a>
+                        <a href="/logout"><li>Log out</li></a>
+                        <li id="theme"></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!--MAIN-->
+            <section id="main_section">
+                <div id="shape_1"></div>
+
+                <div id="box">
+
+                    <div id="text_box">
+                    </div>
+
+                    <!--<div id="box_user_input">-->
+                        <input autocomplete="off" autofocus placeholder="Chat..." type="text" id="message">
+                        <button id="send_button">Send</button>
+                    <!--</div>-->
+
+                </div>
+
+                <div id="shape_2"></div>
+            </section>
+
+        </section>
+
+    </body>
+
+</html>

@@ -38,7 +38,7 @@ throughout the application. These are the following:
 Throughout the application, the forms, buttons and links are interactive. Thus, creating
 pleasant and friendly experience for the users. The design of this application
 is very minimalistic and easy to read for the eye, as well as having a light and dark
-mode so that user's can adjust the theme to their environment. For example, poeple may want
+mode so that user's can adjust the theme to their environment. For example, people may want
 to use the Dark mode later at night while using the Light mode during the day.
 
 The application.py contains all the backend code neccessary to serve the static files and
